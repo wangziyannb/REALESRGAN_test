@@ -1,0 +1,7 @@
+cd BasicSR-master
+python setup.py install
+cd ..
+cd Real-ESRGAN
+python setup.py install
+
+Finally run main.py
