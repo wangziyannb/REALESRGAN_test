@@ -16,6 +16,7 @@ import numpy as np
 
 
 def load_realesrgan(args, device):
+    # init the model
     model = RRDBNet(num_in_ch=3, num_out_ch=3, num_feat=64, num_block=23, num_grow_ch=32, scale=4)
     netscale = 4
     file_url = ['https://github.com/xinntao/Real-ESRGAN/releases/download/v0.1.0/RealESRGAN_x4plus.pth']
@@ -23,7 +24,7 @@ def load_realesrgan(args, device):
     # model = RRDBNet(num_in_ch=3, num_out_ch=3, num_feat=64, num_block=23, num_grow_ch=32, scale=2)
     # netscale = 2
     # file_url = ['https://github.com/xinntao/Real-ESRGAN/releases/download/v0.2.1/RealESRGAN_x2plus.pth']
-
+    # prepare wrapper class
     model_path = os.path.join('weights', 'RealESRGAN_x4plus.pth')
     if not os.path.isfile(model_path):
         ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -32,6 +33,7 @@ def load_realesrgan(args, device):
             model_path = load_file_from_url(
                 url=url, model_dir=os.path.join(ROOT_DIR, 'weights'), progress=True, file_name=None)
     dni_weight = None
+    # wrapper class will load the weight based on the given model_path
     upsampler = RealESRGANer(
         scale=netscale,
         model_path=model_path,
@@ -42,6 +44,11 @@ def load_realesrgan(args, device):
         pre_pad=args.pre_pad,
         half=False,
         device=device)
+    # feeds model the input
+    y = upsampler.model(torch.from_numpy(np.random.rand(5, 3, 255, 255)).float().to(device))
+    print(y)
+
+
 
     # if args.face_enhance:  # Use GFPGAN for face enhancement
     from gfpgan import GFPGANer
@@ -73,7 +80,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     sr_model = load_realesrgan(args, device)
-    img = np.random.rand(96, 96, 3)
+    img = np.random.rand(255, 255, 3)
     a, b, output = sr_model.enhance(img, has_aligned=False, only_center_face=False,
                                     paste_back=True)
     print(a, b, output)
